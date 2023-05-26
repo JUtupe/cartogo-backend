@@ -1,0 +1,25 @@
+server:
+  servlet:
+    context-path: /api/rest
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MariaDBDialect
+  datasource:
+    username: root
+    password: cartogo
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/cartogo?characterEncoding=utf8&useUnicode=true
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: ''
+#            client-secret: ''
+#            scope: openid,profile,email
+#      resourceserver:
+#        jwt:
+#          issuer-uri: https://accounts.google.com
+#          jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
