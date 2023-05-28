@@ -7,7 +7,7 @@ import pl.jutupe.cartogobackend.user.domain.User
 import pl.jutupe.cartogobackend.user.infrastructure.UserRepository
 
 @RestController
-@RequestMapping("test")
+@RequestMapping("v1/test")
 class TestController(
     private val userRepository: UserRepository
 ) {

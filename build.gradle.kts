@@ -25,6 +25,9 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+	implementation("com.google.api-client:google-api-client:2.2.0")
+	implementation("me.paulschwarz:spring-dotenv:4.0.0")
+
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 }
 
