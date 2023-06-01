@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  database:
+    image: mariadb:10.7
+    restart: unless-stopped
+    container_name: database
+    volumes:
+      - database:/var/lib/mysql
+    environment:
+      MARIADB_AUTO_UPGRADE: 1
+      MYSQL_ROOT_PASSWORD: cartogo
+      MYSQL_DATABASE: cartogo
+    ports:
+      - "3306:3306"
+
+volumes:
+  database:
