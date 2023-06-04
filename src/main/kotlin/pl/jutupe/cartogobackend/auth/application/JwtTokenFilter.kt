@@ -8,7 +8,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component
 import org.springframework.util.ObjectUtils
 import org.springframework.web.filter.OncePerRequestFilter
-import pl.jutupe.cartogobackend.auth.JwtTokenUtil
 import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
 import pl.jutupe.cartogobackend.user.infrastructure.UserRepository
 import javax.servlet.FilterChain

@@ -1,12 +1,11 @@
-package pl.jutupe.cartogobackend.auth
+package pl.jutupe.cartogobackend.auth.application
 
 import io.jsonwebtoken.*
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Component
-import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
+import pl.jutupe.cartogobackend.rental.domain.model.Rental
+import pl.jutupe.cartogobackend.user.domain.model.User
 import java.util.*
-
 
 @Component
 class JwtTokenUtil(
@@ -14,18 +13,23 @@ class JwtTokenUtil(
     private val secret: String,
 ) {
 
-    fun generateAccessToken(principal: UserPrincipal): String {
+    fun generateAccessToken(user: User, rental: Rental?): String {
         return Jwts.builder()
-            .setSubject(principal.username)
+            .setSubject(user.name)
             .setIssuer("Wypozyczajka")
             .setIssuedAt(Date())
             .setExpiration(Date(System.currentTimeMillis() + EXPIRE_DURATION))
             .addClaims(mapOf(
                 "user" to mapOf(
-                    "id" to principal.user.id,
-                    "name" to principal.user.name,
-                    "email" to principal.user.email,
-                )
+                    "id" to user.id,
+                    "name" to user.name,
+                    "email" to user.email,
+                ),
+                "rental" to rental?.let { mapOf(
+                    "id" to it.id,
+                    "name" to it.name,
+                    "isOwner" to (it.ownerId == user.id),
+                )},
             ))
             .signWith(SignatureAlgorithm.HS512, secret)
             .compact()
