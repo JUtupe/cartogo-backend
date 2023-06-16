@@ -66,7 +66,7 @@ class JwtTokenFilter(
         SecurityContextHolder.getContext().authentication = authentication
     }
 
-    private fun getUserDetails(token: String): UserDetails? {
+    private fun getUserDetails(token: String): UserPrincipal? {
         val userId = jwtUtil.getSubject(token)!!
 
         val user = userRepository.findByIdOrNull(userId) ?: return null

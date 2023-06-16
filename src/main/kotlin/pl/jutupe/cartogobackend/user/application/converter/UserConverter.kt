@@ -6,7 +6,7 @@ import pl.jutupe.cartogobackend.user.domain.model.User
 
 @Component
 class UserConverter {
-    fun convert(user: User): UserResponse =
+    fun toResponse(user: User): UserResponse =
         UserResponse(
             id = user.id,
             name = user.name,
