@@ -28,7 +28,7 @@ class RentalService(
                 lastName = request.owner.lastName,
             ),
             ownerId = user.id,
-            userIds = mutableSetOf(user.id),
+            users = mutableListOf(user),
             invites = mutableListOf(),
         )
 
@@ -45,7 +45,7 @@ class RentalService(
     }
 
     fun acceptInvitation(rental: Rental, invitation: RentalInvitation, user: User): Rental {
-        rental.userIds.add(user.id)
+        rental.users.add(user)
         inviteRepository.delete(invitation)
 
         return rentalRepository.save(rental)
@@ -53,5 +53,11 @@ class RentalService(
 
     fun cancelInvitation(invite: RentalInvitation) {
         inviteRepository.delete(invite)
+    }
+
+    fun removeEmployee(rental: Rental, user: User): Rental {
+        rental.users.remove(user)
+
+        return rentalRepository.save(rental)
     }
 }

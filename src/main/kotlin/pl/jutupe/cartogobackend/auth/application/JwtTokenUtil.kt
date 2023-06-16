@@ -15,7 +15,7 @@ class JwtTokenUtil(
 
     fun generateAccessToken(user: User, rental: Rental?): String {
         return Jwts.builder()
-            .setSubject(user.name)
+            .setSubject(user.id)
             .setIssuer("Wypozyczajka")
             .setIssuedAt(Date())
             .setExpiration(Date(System.currentTimeMillis() + EXPIRE_DURATION))

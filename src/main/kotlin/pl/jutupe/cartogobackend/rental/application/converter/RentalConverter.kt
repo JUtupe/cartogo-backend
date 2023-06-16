@@ -4,9 +4,12 @@ import org.springframework.stereotype.Component
 import pl.jutupe.cartogobackend.rental.application.model.RentalInvitationResponse
 import pl.jutupe.cartogobackend.rental.application.model.RentalResponse
 import pl.jutupe.cartogobackend.rental.domain.model.Rental
+import pl.jutupe.cartogobackend.user.application.converter.UserConverter
 
 @Component
-class RentalConverter {
+class RentalConverter(
+    private val userConverter: UserConverter,
+) {
 
     fun toResponse(rental: Rental): RentalResponse = RentalResponse(
         id = rental.id,
@@ -22,7 +25,9 @@ class RentalConverter {
             lastName = rental.owner.lastName,
         ),
         ownerId = rental.ownerId,
-        userIds = rental.userIds,
+        users = rental.users.map {
+            userConverter.toResponse(it)
+        }.toSet(),
         invitations = rental.invites.map {
             RentalInvitationResponse(
                 id = it.id,

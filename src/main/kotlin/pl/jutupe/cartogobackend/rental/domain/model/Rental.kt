@@ -1,6 +1,7 @@
 package pl.jutupe.cartogobackend.rental.domain.model
 
 import org.springframework.data.annotation.CreatedDate
+import pl.jutupe.cartogobackend.user.domain.model.User
 import java.util.*
 import javax.persistence.*
 
@@ -26,9 +27,8 @@ data class Rental(
     @Column(unique = true)
     val ownerId: String,
 
-    @Column
-    @ElementCollection
-    val userIds: MutableSet<String>,
+    @OneToMany
+    val users: MutableList<User>,
 
     @OneToMany(mappedBy = "rentalId", cascade = [CascadeType.ALL], orphanRemoval = true)
     val invites: MutableList<RentalInvitation>,
@@ -37,6 +37,7 @@ data class Rental(
     @Column
     val createdDate: Date = Date()
 
+    @Embeddable
     data class Address(
         @Column
         val postalCode: String,
@@ -48,6 +49,7 @@ data class Rental(
         val city: String,
     )
 
+    @Embeddable
     data class Owner(
         @Column
         val firstName: String,

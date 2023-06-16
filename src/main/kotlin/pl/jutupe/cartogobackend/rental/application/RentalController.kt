@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
+import pl.jutupe.cartogobackend.common.exceptions.BadRequestException
 import pl.jutupe.cartogobackend.common.exceptions.ForbiddenException
+import pl.jutupe.cartogobackend.common.exceptions.NotFoundException
 import pl.jutupe.cartogobackend.rental.application.converter.RentalConverter
 import pl.jutupe.cartogobackend.rental.application.model.RentalRequest
 import pl.jutupe.cartogobackend.rental.application.model.RentalResponse
@@ -21,11 +23,13 @@ import pl.jutupe.cartogobackend.rental.domain.exceptions.RentalNotFoundException
 import pl.jutupe.cartogobackend.rental.domain.exceptions.UserAlreadyInRentalException
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalInviteRepository
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalRepository
+import pl.jutupe.cartogobackend.user.infrastructure.UserRepository
 import kotlin.jvm.optionals.getOrNull
 
 @RestController
 @RequestMapping("v1/rentals")
 class RentalController(
+    private val userRepository: UserRepository,
     private val rentalService: RentalService,
     private val rentalConverter: RentalConverter,
     private val rentalRepository: RentalRepository,
@@ -38,7 +42,7 @@ class RentalController(
         @RequestBody request: RentalRequest,
         @AuthenticationPrincipal principal: UserPrincipal,
     ): RentalResponse {
-        val foundRental = rentalRepository.findByUserIdsContaining(principal.user.id).firstOrNull()
+        val foundRental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
         if (foundRental != null) {
             throw UserAlreadyInRentalException(principal.user.id)
         }
@@ -52,7 +56,7 @@ class RentalController(
     fun getMyRental(
         @AuthenticationPrincipal principal: UserPrincipal,
     ): RentalResponse {
-        val rental = rentalRepository.findByUserIdsContaining(principal.user.id).firstOrNull()
+        val rental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
             ?: throw RentalNotFoundException()
 
         return rentalConverter.toResponse(rental)
@@ -63,7 +67,7 @@ class RentalController(
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestBody email: String,
     ): RentalResponse {
-        val rental = rentalRepository.findByUserIdsContaining(principal.user.id).firstOrNull()
+        val rental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
             ?: throw RentalNotFoundException()
 
         if (rental.ownerId != principal.user.id) {
@@ -103,10 +107,32 @@ class RentalController(
         val rental = rentalRepository.findById(invitation.rentalId).getOrNull()
             ?: throw RentalNotFoundException(invitation.rentalId)
 
-        if (rental.ownerId != principal.user.id || principal.user.email != invitation.email) {
+        if (rental.ownerId != principal.user.id && principal.user.email != invitation.email) {
             throw ForbiddenException("Only owner or invited user can delete invitations")
         }
 
         rentalService.cancelInvitation(invitation)
+    }
+
+    @DeleteMapping("employees/{id}")
+    fun deleteEmployee(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable id: String,
+    ) {
+        val rental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
+            ?: throw RentalNotFoundException()
+
+        val employee = userRepository.findById(id).getOrNull()
+            ?: throw BadRequestException("User with id=$id not found")
+
+        if (id == rental.ownerId) {
+            throw BadRequestException("Owner cannot delete himself")
+        }
+
+        if (rental.ownerId != principal.user.id) {
+            throw ForbiddenException("Only owner can delete employee")
+        }
+
+        rentalService.removeEmployee(rental, employee)
     }
 }
