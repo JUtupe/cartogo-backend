@@ -16,6 +16,7 @@ class UserService(
             name = token.payload["name"] as String,
             email = token.payload["email"] as String,
             avatar = token.payload["picture"] as String?,
+            rental = null,
         )
 
         return userRepository.save(user)

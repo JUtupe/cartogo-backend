@@ -7,11 +7,13 @@ import pl.jutupe.cartogobackend.rental.domain.model.RentalInvitation
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalInviteRepository
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalRepository
 import pl.jutupe.cartogobackend.user.domain.model.User
+import pl.jutupe.cartogobackend.user.infrastructure.UserRepository
 
 @Service
 class RentalService(
     private val rentalRepository: RentalRepository,
     private val inviteRepository: RentalInviteRepository,
+    private val userRepository: UserRepository,
 ) {
 
     fun create(request: RentalRequest, user: User): Rental {
@@ -28,11 +30,13 @@ class RentalService(
                 lastName = request.owner.lastName,
             ),
             ownerId = user.id,
-            users = mutableListOf(user),
-            invites = mutableListOf(),
+            invites = mutableSetOf(),
         )
 
-        return rentalRepository.save(rental)
+        val savedRental = rentalRepository.save(rental)
+        userRepository.save(user.copy(rental = rental))
+
+        return savedRental
     }
 
     fun inviteEmail(rental: Rental, email: String): Rental {
@@ -45,8 +49,9 @@ class RentalService(
     }
 
     fun acceptInvitation(rental: Rental, invitation: RentalInvitation, user: User): Rental {
-        rental.users.add(user)
         inviteRepository.delete(invitation)
+
+        userRepository.save(user.copy(rental = rental))
 
         return rentalRepository.save(rental)
     }
@@ -56,7 +61,7 @@ class RentalService(
     }
 
     fun removeEmployee(rental: Rental, user: User): Rental {
-        rental.users.remove(user)
+        userRepository.save(user.copy(rental = null))
 
         return rentalRepository.save(rental)
     }

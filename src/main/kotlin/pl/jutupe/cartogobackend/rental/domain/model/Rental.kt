@@ -27,11 +27,8 @@ data class Rental(
     @Column(unique = true)
     val ownerId: String,
 
-    @OneToMany
-    val users: MutableList<User>,
-
-    @OneToMany(mappedBy = "rentalId", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val invites: MutableList<RentalInvitation>,
+    @OneToMany(mappedBy = "rentalId", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    val invites: MutableSet<RentalInvitation>,
 ) {
     @CreatedDate
     @Column
