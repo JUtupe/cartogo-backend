@@ -19,7 +19,6 @@ class StorageService(
 ) {
 
     private val storageRoot = Files.createDirectories(Path(mainStoragePath))
-    private val tempDir = Files.createDirectories(storageRoot.resolve(TEMP_DIRECTORY))
 
     fun saveImage(fileItem: MultipartFile, targetResource: FileResource) {
         storageRoot.resolve(targetResource.storagePath).createDirectories()
@@ -62,10 +61,6 @@ class StorageService(
 
         // Make sure file is somewhere in the storage root
         if (!file.canonicalPath.startsWith(storageRoot.toFile().canonicalPath)) {
-            return null
-        }
-        // Make sure user can't download temp files
-        if (file.canonicalPath.startsWith(tempDir.toFile().canonicalPath)) {
             return null
         }
         if (!file.exists() || file.isDirectory) {
