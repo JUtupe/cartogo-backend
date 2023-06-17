@@ -22,6 +22,9 @@ data class Vehicle(
     val name: String,
 
     @Column
+    val image: String?,
+
+    @Column
     val state: State
 ) {
     @CreatedDate

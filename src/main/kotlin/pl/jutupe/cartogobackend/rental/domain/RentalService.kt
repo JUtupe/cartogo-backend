@@ -6,6 +6,8 @@ import pl.jutupe.cartogobackend.rental.domain.model.Rental
 import pl.jutupe.cartogobackend.rental.domain.model.RentalInvitation
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalInviteRepository
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalRepository
+import pl.jutupe.cartogobackend.storage.domain.StorageService
+import pl.jutupe.cartogobackend.storage.domain.model.RentalDirectoryResource
 import pl.jutupe.cartogobackend.user.domain.model.User
 import pl.jutupe.cartogobackend.user.infrastructure.UserRepository
 
@@ -14,6 +16,7 @@ class RentalService(
     private val rentalRepository: RentalRepository,
     private val inviteRepository: RentalInviteRepository,
     private val userRepository: UserRepository,
+    private val storageService: StorageService,
 ) {
 
     fun create(request: RentalRequest, user: User): Rental {
@@ -64,5 +67,11 @@ class RentalService(
         userRepository.save(user.copy(rental = null))
 
         return rentalRepository.save(rental)
+    }
+
+    fun delete(rental: Rental) {
+        rentalRepository.delete(rental)
+
+        storageService.removeDirectory(RentalDirectoryResource(rentalId = rental.id))
     }
 }

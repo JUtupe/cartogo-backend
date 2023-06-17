@@ -7,7 +7,8 @@ data class VehicleResponse(
     val rentalId: String,
     val registrationNumber: String,
     val name: String,
-    val state: State
+    val image: String?,
+    val state: State,
 ) {
     data class State(
         val mileage: Long,

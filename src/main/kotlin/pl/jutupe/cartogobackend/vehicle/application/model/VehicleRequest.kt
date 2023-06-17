@@ -3,7 +3,6 @@ package pl.jutupe.cartogobackend.vehicle.application.model
 import pl.jutupe.cartogobackend.vehicle.domain.model.Vehicle
 
 data class VehicleRequest(
-    val rentalId: String,
     val registrationNumber: String,
     val name: String,
     val state: State

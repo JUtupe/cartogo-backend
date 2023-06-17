@@ -3,10 +3,14 @@ package pl.jutupe.cartogobackend.vehicle.application
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
+import pl.jutupe.cartogobackend.common.exceptions.BadRequestException
 import pl.jutupe.cartogobackend.common.exceptions.ForbiddenException
 import pl.jutupe.cartogobackend.common.exceptions.NotFoundException
 import pl.jutupe.cartogobackend.rental.domain.exceptions.RentalNotFoundException
+import pl.jutupe.cartogobackend.storage.domain.StorageService
+import pl.jutupe.cartogobackend.storage.domain.model.VehicleImageFileResource
 import pl.jutupe.cartogobackend.vehicle.application.converter.VehicleConverter
 import pl.jutupe.cartogobackend.vehicle.application.model.VehicleRequest
 import pl.jutupe.cartogobackend.vehicle.application.model.VehicleResponse
@@ -19,35 +23,71 @@ class VehicleController(
     private val vehicleService: VehicleService,
     private val vehicleConverter: VehicleConverter,
     private val vehicleRepository: VehicleRepository,
+    private val storageService: StorageService,
 ) {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createVehicle(
-        @RequestBody request: VehicleRequest,
+        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("request") request: VehicleRequest,
         @AuthenticationPrincipal principal: UserPrincipal,
     ): VehicleResponse {
+        if (principal.user.rental == null) {
+            throw BadRequestException("No rental found for user ${principal.user.id}")
+        }
+
         val vehicle = vehicleService.create(principal.user, request)
 
-        return vehicleConverter.toResponse(vehicle)
+        val vehicleWithImage = image?.let {
+            val resource = VehicleImageFileResource(
+                rentalId = vehicle.rentalId,
+                vehicleId = vehicle.id,
+                nameWithExtension = it.originalFilename ?: throw BadRequestException("Image is required"),
+            )
+            storageService.saveImage(it, resource)
+
+            vehicleService.setImage(vehicle, resource)
+        }
+
+        return vehicleConverter.toResponse(vehicleWithImage ?: vehicle)
     }
 
     @PutMapping("/{id}")
     fun updateVehicle(
         @PathVariable id: String,
-        @RequestBody request: VehicleRequest,
+        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("request") request: VehicleRequest,
         @AuthenticationPrincipal principal: UserPrincipal,
     ): VehicleResponse {
+        if (principal.user.rental == null) {
+            throw BadRequestException("No rental found for user ${principal.user.id}")
+        }
+
         val vehicle = vehicleRepository.findById(id)
             .orElseThrow { NotFoundException("Vehicle with id $id not found") }
 
-        if (vehicle.rentalId != principal.user.rental?.id) {
+        if (vehicle.rentalId != principal.user.rental.id) {
             throw ForbiddenException("Vehicle with id $id is not in your rental")
         }
 
         val updatedVehicle = vehicleService.update(vehicle, request)
 
-        return vehicleConverter.toResponse(updatedVehicle)
+        val vehicleWithImage = image?.let {
+            vehicleService.getCarImageFileResource(vehicle)
+                ?.let { storageService.removeResource(it) }
+
+            val resource = VehicleImageFileResource(
+                rentalId = vehicle.rentalId,
+                vehicleId = vehicle.id,
+                nameWithExtension = it.originalFilename ?: throw BadRequestException("Image is required"),
+            )
+            storageService.saveImage(it, resource)
+
+            vehicleService.setImage(vehicle, resource)
+        }
+
+        return vehicleConverter.toResponse(vehicleWithImage ?: updatedVehicle)
     }
 
     @GetMapping("/{id}")
@@ -89,6 +129,25 @@ class VehicleController(
             throw ForbiddenException("Vehicle with id $id is not in your rental")
         }
 
-        vehicleRepository.delete(vehicle)
+        vehicleService.delete(vehicle)
+    }
+
+    @DeleteMapping("/{id}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteVehicleImage(
+        @PathVariable id: String,
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ) {
+        val vehicle = vehicleRepository.findById(id)
+            .orElseThrow { NotFoundException("Vehicle with id $id not found") }
+
+        if (vehicle.rentalId != principal.user.rental?.id) {
+            throw ForbiddenException("Vehicle with id $id is not in your rental")
+        }
+
+        vehicleService.getCarImageFileResource(vehicle)
+            ?.let { storageService.removeResource(it) }
+
+        vehicleService.setImage(vehicle, null)
     }
 }

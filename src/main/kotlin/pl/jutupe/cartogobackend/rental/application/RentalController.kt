@@ -52,6 +52,16 @@ class RentalController(
         return rentalConverter.toResponse(rental)
     }
 
+    @DeleteMapping("@me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteMyRental(
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ) {
+        val rental = principal.user.rental ?: throw RentalNotFoundException()
+
+        rentalService.delete(rental)
+    }
+
     @PostMapping("invitations")
     fun inviteUser(
         @AuthenticationPrincipal principal: UserPrincipal,
