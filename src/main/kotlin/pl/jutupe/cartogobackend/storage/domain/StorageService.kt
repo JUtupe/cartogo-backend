@@ -6,12 +6,9 @@ import org.springframework.web.multipart.MultipartFile
 import pl.jutupe.cartogobackend.common.exceptions.FileTypeNotSupportedException
 import pl.jutupe.cartogobackend.storage.domain.model.DirectoryResource
 import pl.jutupe.cartogobackend.storage.domain.model.FileResource
-import pl.jutupe.cartogobackend.storage.domain.model.TempDirectoryResource
-import pl.jutupe.cartogobackend.storage.domain.model.TempFileResource
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.UUID
 import javax.imageio.ImageIO
 import kotlin.io.path.*
 
