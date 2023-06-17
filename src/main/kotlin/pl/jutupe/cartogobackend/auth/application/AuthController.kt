@@ -1,17 +1,23 @@
 package pl.jutupe.cartogobackend.auth.application
 
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import pl.jutupe.cartogobackend.auth.application.model.AuthResponse
 import pl.jutupe.cartogobackend.auth.domain.AuthService
+import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
 import pl.jutupe.cartogobackend.rental.application.converter.RentalConverter
 import pl.jutupe.cartogobackend.rental.application.model.RentalInvitationResponse
+import pl.jutupe.cartogobackend.rental.domain.model.Rental
+import pl.jutupe.cartogobackend.rental.domain.model.RentalInvitation
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalInviteRepository
 import pl.jutupe.cartogobackend.rental.infrastructure.RentalRepository
 import pl.jutupe.cartogobackend.user.application.converter.UserConverter
+import pl.jutupe.cartogobackend.user.domain.model.User
 import kotlin.jvm.optionals.getOrNull
 
 @RestController
@@ -34,31 +40,61 @@ class AuthController(
         val user = principal.user
         val rental = rentalRepository.findByUsersContaining(user).firstOrNull()
 
+        val token = jwtTokenUtil.generateAccessToken(user, rental)
+
+        return ResponseEntity.ok(
+            buildAuthResponse(
+                accessToken = token,
+                user = principal.user,
+                rental = rental,
+            )
+        )
+    }
+
+    @GetMapping("@me")
+    fun getMe(
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ): ResponseEntity<AuthResponse> {
+        val user = principal.user
+        val rental = rentalRepository.findByUsersContaining(user).firstOrNull()
+        val token = jwtTokenUtil.generateAccessToken(user, rental)
+
+        return ResponseEntity.ok(
+            buildAuthResponse(
+                accessToken = token,
+                user = principal.user,
+                rental = rental,
+            )
+        )
+    }
+
+    private fun buildAuthResponse(
+        accessToken: String,
+        user: User,
+        rental: Rental?,
+    ): AuthResponse {
         val pendingInvitation = inviteRepository.findByEmail(user.email)
         val invitationRental = pendingInvitation?.let { invite ->
             rentalRepository.findById(invite.rentalId).getOrNull()
         }
 
-        val token = jwtTokenUtil.generateAccessToken(user, rental)
-
-        return ResponseEntity.ok(
-            AuthResponse(
-                accessToken = token,
-                user = userConverter.toResponse(principal.user),
-                rental = rental?.let { rentalConverter.toResponse(it) },
-                properties = AuthResponse.Properties(
-                    isMemberOfAnyRental = rental != null,
-                    isRentalOwner = rental?.ownerId == user.id,
-                    pendingInvitation = pendingInvitation?.let { invitation ->
-                        RentalInvitationResponse(
-                            id = invitation.id,
-                            rentalId = invitation.rentalId,
-                            rentalName = invitationRental?.name ?: "Unknown rental",
-                            email = invitation.email,
-                        )
-                    },
-                )
+        return AuthResponse(
+            accessToken = accessToken,
+            user = userConverter.toResponse(user),
+            rental = rental?.let { rentalConverter.toResponse(it) },
+            properties = AuthResponse.Properties(
+                isMemberOfAnyRental = rental != null,
+                isRentalOwner = rental?.ownerId == user.id,
+                pendingInvitation = pendingInvitation?.let { invitation ->
+                    RentalInvitationResponse(
+                        id = invitation.id,
+                        rentalId = invitation.rentalId,
+                        rentalName = invitationRental?.name ?: "Unknown rental",
+                        email = invitation.email,
+                    )
+                },
             )
         )
     }
+
 }
