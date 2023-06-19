@@ -1,5 +1,6 @@
 package pl.jutupe.cartogobackend.auth.application
 
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -38,32 +39,31 @@ class AuthController(
         val principal = authService.principalByUserToken(googleToken)
 
         val user = principal.user
-        val rental = rentalRepository.findByUsersContaining(user).firstOrNull()
-
-        val token = jwtTokenUtil.generateAccessToken(user, rental)
+        val token = jwtTokenUtil.generateAccessToken(user)
 
         return ResponseEntity.ok(
             buildAuthResponse(
                 accessToken = token,
                 user = principal.user,
-                rental = rental,
             )
         )
     }
 
     @GetMapping("@me")
     fun getMe(
-        @AuthenticationPrincipal principal: UserPrincipal,
+        @AuthenticationPrincipal principal: UserPrincipal?,
     ): ResponseEntity<AuthResponse> {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+
         val user = principal.user
-        val rental = rentalRepository.findByUsersContaining(user).firstOrNull()
-        val token = jwtTokenUtil.generateAccessToken(user, rental)
+        val token = jwtTokenUtil.generateAccessToken(user)
 
         return ResponseEntity.ok(
             buildAuthResponse(
                 accessToken = token,
                 user = principal.user,
-                rental = rental,
             )
         )
     }
@@ -71,7 +71,6 @@ class AuthController(
     private fun buildAuthResponse(
         accessToken: String,
         user: User,
-        rental: Rental?,
     ): AuthResponse {
         val pendingInvitation = inviteRepository.findByEmail(user.email)
         val invitationRental = pendingInvitation?.let { invite ->
@@ -81,10 +80,10 @@ class AuthController(
         return AuthResponse(
             accessToken = accessToken,
             user = userConverter.toResponse(user),
-            rental = rental?.let { rentalConverter.toResponse(it) },
+            rental = user.rental?.let { rentalConverter.toResponse(it) },
             properties = AuthResponse.Properties(
-                isMemberOfAnyRental = rental != null,
-                isRentalOwner = rental?.ownerId == user.id,
+                isMemberOfAnyRental = user.rental != null,
+                isRentalOwner = user.rental?.ownerId == user.id,
                 pendingInvitation = pendingInvitation?.let { invitation ->
                     RentalInvitationResponse(
                         id = invitation.id,

@@ -2,18 +2,10 @@ package pl.jutupe.cartogobackend.rental.application
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
 import pl.jutupe.cartogobackend.common.exceptions.BadRequestException
 import pl.jutupe.cartogobackend.common.exceptions.ForbiddenException
-import pl.jutupe.cartogobackend.common.exceptions.NotFoundException
 import pl.jutupe.cartogobackend.rental.application.converter.RentalConverter
 import pl.jutupe.cartogobackend.rental.application.model.RentalRequest
 import pl.jutupe.cartogobackend.rental.application.model.RentalResponse
@@ -42,8 +34,7 @@ class RentalController(
         @RequestBody request: RentalRequest,
         @AuthenticationPrincipal principal: UserPrincipal,
     ): RentalResponse {
-        val foundRental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
-        if (foundRental != null) {
+        if (principal.user.rental != null) {
             throw UserAlreadyInRentalException(principal.user.id)
         }
 
@@ -56,19 +47,27 @@ class RentalController(
     fun getMyRental(
         @AuthenticationPrincipal principal: UserPrincipal,
     ): RentalResponse {
-        val rental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
-            ?: throw RentalNotFoundException()
+        val rental = principal.user.rental ?: throw RentalNotFoundException()
 
         return rentalConverter.toResponse(rental)
     }
 
-    @PostMapping("@me/invitations")
+    @DeleteMapping("@me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteMyRental(
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ) {
+        val rental = principal.user.rental ?: throw RentalNotFoundException()
+
+        rentalService.delete(rental)
+    }
+
+    @PostMapping("invitations")
     fun inviteUser(
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestBody email: String,
     ): RentalResponse {
-        val rental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
-            ?: throw RentalNotFoundException()
+        val rental = principal.user.rental ?: throw RentalNotFoundException()
 
         if (rental.ownerId != principal.user.id) {
             throw ForbiddenException("Only owner can invite users")
@@ -119,18 +118,17 @@ class RentalController(
         @AuthenticationPrincipal principal: UserPrincipal,
         @PathVariable id: String,
     ) {
-        val rental = rentalRepository.findByUsersContaining(principal.user).firstOrNull()
-            ?: throw RentalNotFoundException()
+        val employee = userRepository.findById(id).orElseThrow {
+            BadRequestException("User with id=$id not found")
+        }
+        val rental = employee.rental ?: throw BadRequestException("User is not in rental")
 
-        val employee = userRepository.findById(id).getOrNull()
-            ?: throw BadRequestException("User with id=$id not found")
+        if (rental.ownerId != principal.user.id) {
+            throw ForbiddenException("Only owner can delete employees")
+        }
 
         if (id == rental.ownerId) {
             throw BadRequestException("Owner cannot delete himself")
-        }
-
-        if (rental.ownerId != principal.user.id) {
-            throw ForbiddenException("Only owner can delete employee")
         }
 
         rentalService.removeEmployee(rental, employee)

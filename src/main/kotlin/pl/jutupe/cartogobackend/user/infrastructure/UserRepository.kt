@@ -7,4 +7,6 @@ import pl.jutupe.cartogobackend.user.domain.model.User
 @Repository
 interface UserRepository : CrudRepository<User, String> {
     fun findByGoogleId(id: String): User?
+
+    fun findByRentalId(rentalId: String): List<User>
 }

@@ -13,7 +13,7 @@ class JwtTokenUtil(
     private val secret: String,
 ) {
 
-    fun generateAccessToken(user: User, rental: Rental?): String {
+    fun generateAccessToken(user: User): String {
         return Jwts.builder()
             .setSubject(user.id)
             .setIssuer("Wypozyczajka")
@@ -25,7 +25,7 @@ class JwtTokenUtil(
                     "name" to user.name,
                     "email" to user.email,
                 ),
-                "rental" to rental?.let { mapOf(
+                "rental" to user.rental?.let { mapOf(
                     "id" to it.id,
                     "name" to it.name,
                     "isOwner" to (it.ownerId == user.id),
