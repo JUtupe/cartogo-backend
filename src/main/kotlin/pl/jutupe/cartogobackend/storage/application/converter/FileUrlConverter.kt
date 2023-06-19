@@ -15,7 +15,7 @@ class FileUrlConverter(
         convert(file.pathWithName)
 
     fun convert(pathWithName: String): FileUrlResponse {
-        val fullFileUrl = "$storageServiceUrl/v1/storage/$pathWithName"
+        val fullFileUrl = "$storageServiceUrl/api/rest/v1/storage/$pathWithName"
 
         return FileUrlResponse(fullFileUrl)
     }

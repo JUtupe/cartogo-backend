@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile
 import pl.jutupe.cartogobackend.common.exceptions.FileTypeNotSupportedException
 import pl.jutupe.cartogobackend.storage.domain.model.DirectoryResource
 import pl.jutupe.cartogobackend.storage.domain.model.FileResource
+import pl.jutupe.cartogobackend.common.extension
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -88,20 +89,7 @@ class StorageService(
         }
     }
 
-    val MultipartFile.extension: String?
-        get() {
-            val originalFilename = originalFilename ?: return ""
-            val lastDotIndex = originalFilename.lastIndexOf('.')
-
-            return if (lastDotIndex == -1) {
-                null
-            } else {
-                originalFilename.substring(lastDotIndex + 1)
-            }
-        }
-
     companion object {
-        private const val TEMP_DIRECTORY = "temp"
         private const val MAX_FILE_SIZE = 10_485_760 // 10MB
 
         private val ALLOWED_IMAGE_TYPES = listOf(

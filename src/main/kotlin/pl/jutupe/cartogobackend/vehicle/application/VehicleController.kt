@@ -1,5 +1,6 @@
 package pl.jutupe.cartogobackend.vehicle.application
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -8,6 +9,7 @@ import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
 import pl.jutupe.cartogobackend.common.exceptions.BadRequestException
 import pl.jutupe.cartogobackend.common.exceptions.ForbiddenException
 import pl.jutupe.cartogobackend.common.exceptions.NotFoundException
+import pl.jutupe.cartogobackend.common.extension
 import pl.jutupe.cartogobackend.rental.domain.exceptions.RentalNotFoundException
 import pl.jutupe.cartogobackend.storage.domain.StorageService
 import pl.jutupe.cartogobackend.storage.domain.model.VehicleImageFileResource
@@ -16,6 +18,7 @@ import pl.jutupe.cartogobackend.vehicle.application.model.VehicleRequest
 import pl.jutupe.cartogobackend.vehicle.application.model.VehicleResponse
 import pl.jutupe.cartogobackend.vehicle.domain.VehicleService
 import pl.jutupe.cartogobackend.vehicle.infrastructure.VehicleRepository
+import java.util.UUID
 
 @RestController
 @RequestMapping("v1/vehicles")
@@ -26,13 +29,15 @@ class VehicleController(
     private val storageService: StorageService,
 ) {
 
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data", "application/json"])
     @ResponseStatus(HttpStatus.CREATED)
     fun createVehicle(
-        @RequestPart("image") image: MultipartFile?,
-        @RequestPart("request") request: VehicleRequest,
+        @RequestPart("image", required = false) image: MultipartFile?,
+        @RequestPart("form") formMultipart: String,
         @AuthenticationPrincipal principal: UserPrincipal,
     ): VehicleResponse {
+        val request = jacksonObjectMapper().readValue(formMultipart, VehicleRequest::class.java)
+
         if (principal.user.rental == null) {
             throw BadRequestException("No rental found for user ${principal.user.id}")
         }
@@ -43,7 +48,7 @@ class VehicleController(
             val resource = VehicleImageFileResource(
                 rentalId = vehicle.rentalId,
                 vehicleId = vehicle.id,
-                nameWithExtension = it.originalFilename ?: throw BadRequestException("Image is required"),
+                nameWithExtension = (UUID.randomUUID().toString() + '.' + it.extension),
             )
             storageService.saveImage(it, resource)
 
@@ -53,13 +58,15 @@ class VehicleController(
         return vehicleConverter.toResponse(vehicleWithImage ?: vehicle)
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}", consumes = ["multipart/form-data", "application/json"])
     fun updateVehicle(
         @PathVariable id: String,
-        @RequestPart("image") image: MultipartFile?,
-        @RequestPart("request") request: VehicleRequest,
+        @RequestPart("image", required = false) image: MultipartFile?,
+        @RequestPart("form") formMultipart: String,
         @AuthenticationPrincipal principal: UserPrincipal,
     ): VehicleResponse {
+        val request = jacksonObjectMapper().readValue(formMultipart, VehicleRequest::class.java)
+
         if (principal.user.rental == null) {
             throw BadRequestException("No rental found for user ${principal.user.id}")
         }

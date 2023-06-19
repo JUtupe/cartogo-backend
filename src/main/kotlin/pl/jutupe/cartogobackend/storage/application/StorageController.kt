@@ -5,7 +5,6 @@ import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import pl.jutupe.cartogobackend.storage.domain.StorageService
@@ -17,11 +16,11 @@ class StorageController(
     private val storageService: StorageService,
 ) {
 
-    @GetMapping("/{name:.+}")
+    @GetMapping("**")
     fun getFile(
         request: HttpServletRequest,
-        @PathVariable name: String
     ): ResponseEntity<UrlResource> {
+        val name = request.requestURI.split(request.contextPath + "/v1/storage/")[1]
         val image = storageService.getFile(name) ?: return ResponseEntity.notFound().build()
 
         val contentType = runCatching {

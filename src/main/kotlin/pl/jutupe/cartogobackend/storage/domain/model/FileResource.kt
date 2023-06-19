@@ -6,7 +6,7 @@ open class FileResource(
 ) {
 
     val pathWithName: String
-        get() = "$storagePath$nameWithExtension"
+        get() = "$storagePath/$nameWithExtension"
 }
 
 class VehicleImageFileResource(

@@ -31,6 +31,7 @@ class SecurityConfig(
             .and()
             .authorizeRequests()
             .antMatchers("/v1/auth/google").permitAll()
+            .antMatchers("/v1/storage/**").permitAll()
             .anyRequest().authenticated()
             .and()
             .exceptionHandling()

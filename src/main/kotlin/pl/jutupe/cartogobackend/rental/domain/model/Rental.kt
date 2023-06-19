@@ -1,7 +1,6 @@
 package pl.jutupe.cartogobackend.rental.domain.model
 
 import org.springframework.data.annotation.CreatedDate
-import pl.jutupe.cartogobackend.user.domain.model.User
 import java.util.*
 import javax.persistence.*
 

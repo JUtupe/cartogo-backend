@@ -2,10 +2,7 @@ package pl.jutupe.cartogobackend.vehicle.domain.model
 
 import org.springframework.data.annotation.CreatedDate
 import java.util.*
-import javax.persistence.Column
-import javax.persistence.Embeddable
-import javax.persistence.Entity
-import javax.persistence.Id
+import javax.persistence.*
 
 @Entity
 data class Vehicle(
@@ -25,6 +22,7 @@ data class Vehicle(
     val image: String?,
 
     @Column
+    @Embedded
     val state: State
 ) {
     @CreatedDate
@@ -39,7 +37,8 @@ data class Vehicle(
         @Column
         val fuelLevel: Int, // 0-100
 
-        @Column
+        @Column(name="vehicle_condition")
+        @Enumerated(EnumType.STRING)
         val condition: Condition,
     ) {
         enum class Condition {
