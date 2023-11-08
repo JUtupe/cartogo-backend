@@ -43,6 +43,22 @@ class RentalController(
         return rentalConverter.toResponse(rental)
     }
 
+    @PutMapping("@me")
+    fun updateRental(
+        @RequestBody request: RentalRequest,
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ): RentalResponse {
+        val rental = principal.user.rental ?: throw RentalNotFoundException(rentalId = "@me")
+
+        if (rental.ownerId != principal.user.id) {
+            throw ForbiddenException("Only owner can edit rental")
+        }
+
+        val updatedRental = rentalService.update(rental, request, principal.user)
+
+        return rentalConverter.toResponse(updatedRental)
+    }
+
     @GetMapping("@me")
     fun getMyRental(
         @AuthenticationPrincipal principal: UserPrincipal,
