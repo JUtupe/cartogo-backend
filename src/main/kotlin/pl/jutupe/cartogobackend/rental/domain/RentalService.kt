@@ -42,6 +42,25 @@ class RentalService(
         return savedRental
     }
 
+
+    fun update(rental: Rental, request: RentalRequest, user: User): Rental {
+        val rentalWithChanges = rental.copy(
+            name = request.name,
+            nip = request.nip,
+            address = Rental.Address(
+                postalCode = request.address.postalCode,
+                street = request.address.street,
+                city = request.address.city,
+            ),
+            owner = Rental.Owner(
+                firstName = request.owner.firstName,
+                lastName = request.owner.lastName,
+            ),
+        )
+
+        return rentalRepository.save(rentalWithChanges)
+    }
+
     fun inviteEmail(rental: Rental, email: String): Rental {
         val invite = inviteRepository.findByEmail(email)
             ?: inviteRepository.save(RentalInvitation(email = email, rentalId = rental.id))
