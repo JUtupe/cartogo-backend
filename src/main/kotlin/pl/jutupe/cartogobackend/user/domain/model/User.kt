@@ -17,6 +17,9 @@ data class User(
     @Column
     val name: String,
 
+    @Column
+    val signature: String?,
+
     @Column(unique = true)
     val email: String,
 

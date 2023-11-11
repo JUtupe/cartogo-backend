@@ -21,7 +21,7 @@ class StorageService(
 
     private val storageRoot = Files.createDirectories(Path(mainStoragePath))
 
-    fun saveImage(fileItem: MultipartFile, targetResource: FileResource) {
+    fun saveImage(fileItem: MultipartFile, targetResource: FileResource): FileResource {
         storageRoot.resolve(targetResource.storagePath).createDirectories()
 
         assertFileSize(fileItem.size)
@@ -35,6 +35,8 @@ class StorageService(
         val targetPath = storageRoot.resolve(targetResource.pathWithName)
 
         ImageIO.write(image, targetPath.extension, targetPath.toFile())
+
+        return targetResource
     }
 
     fun removeResource(resource: FileResource) {
