@@ -14,3 +14,8 @@ class VehicleImageFileResource(
     vehicleId: String,
     nameWithExtension: String
 ) : FileResource("rental/$rentalId/vehicle/$vehicleId", nameWithExtension)
+
+class UserSignatureFileResource(
+    userId: String,
+    nameWithExtension: String
+) : FileResource("user/$userId", nameWithExtension)

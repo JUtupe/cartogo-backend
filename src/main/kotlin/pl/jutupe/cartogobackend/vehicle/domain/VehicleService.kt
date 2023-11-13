@@ -60,7 +60,7 @@ class VehicleService(
         )
     }
 
-    fun setImage(vehicle: Vehicle, image: VehicleImageFileResource?): Vehicle {
+    fun setImage(vehicle: Vehicle, image: FileResource?): Vehicle {
         return vehicleRepository.save(vehicle.copy(
             image = image?.pathWithName,
         ))
