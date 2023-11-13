@@ -20,8 +20,7 @@ class UserController(
     private val userConverter: UserConverter,
 ) {
 
-    @PostMapping(consumes = ["multipart/form-data", "application/json"])
-    @PutMapping("@me/signature")
+    @PutMapping("@me/signature", consumes = ["multipart/form-data", "application/json"])
     fun putSignature(
         @RequestPart("signature", required = false) signature: MultipartFile?,
         @AuthenticationPrincipal principal: UserPrincipal
