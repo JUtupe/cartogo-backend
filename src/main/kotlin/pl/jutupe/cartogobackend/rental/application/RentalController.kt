@@ -126,7 +126,7 @@ class RentalController(
             throw ForbiddenException("Only owner or invited user can delete invitations")
         }
 
-        rentalService.cancelInvitation(invitation)
+        rentalService.cancelInvitation(rental, invitation)
     }
 
     @DeleteMapping("employees/{id}")

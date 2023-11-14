@@ -71,15 +71,13 @@ class RentalService(
     }
 
     fun acceptInvitation(rental: Rental, invitation: RentalInvitation, user: User): Rental {
-        inviteRepository.delete(invitation)
-
         userRepository.save(user.copy(rental = rental))
 
-        return rentalRepository.save(rental)
+        return rentalRepository.save(rental.copy(invites = rental.invites.minus(invitation).toMutableSet()))
     }
 
-    fun cancelInvitation(invite: RentalInvitation) {
-        inviteRepository.delete(invite)
+    fun cancelInvitation(rental: Rental, invitation: RentalInvitation) {
+        rentalRepository.save(rental.copy(invites = rental.invites.minus(invitation).toMutableSet()))
     }
 
     fun removeEmployee(rental: Rental, user: User): Rental {
