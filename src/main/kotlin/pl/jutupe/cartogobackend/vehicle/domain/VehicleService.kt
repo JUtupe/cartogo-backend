@@ -25,6 +25,7 @@ class VehicleService(
                 mileage = request.state.mileage,
                 fuelLevel = request.state.fuelLevel,
                 condition = request.state.condition,
+                location = request.state.location ?: Vehicle.State.Location.RENTAL,
             ),
         )
 
@@ -39,6 +40,7 @@ class VehicleService(
                 mileage = request.state.mileage,
                 fuelLevel = request.state.fuelLevel,
                 condition = request.state.condition,
+                location = request.state.location ?: vehicle.state.location,
             ),
         ))
     }

@@ -40,11 +40,21 @@ data class Vehicle(
         @Column(name="vehicle_condition")
         @Enumerated(EnumType.STRING)
         val condition: Condition,
+
+        @Column(name="vehicle_location")
+        @Enumerated(EnumType.STRING)
+        val location: Location = Location.RENTAL,
     ) {
         enum class Condition {
             CLEAN,
             SLIGHTLY_DIRTY,
             DIRTY
+        }
+
+        enum class Location {
+            RENTAL,
+            CUSTOMER,
+            SERVICE,
         }
     }
 }

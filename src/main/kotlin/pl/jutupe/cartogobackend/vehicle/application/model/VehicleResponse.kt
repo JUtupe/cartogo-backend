@@ -13,6 +13,7 @@ data class VehicleResponse(
     data class State(
         val mileage: Long,
         val fuelLevel: Int,
-        val condition: Vehicle.State.Condition
+        val condition: Vehicle.State.Condition,
+        val location: Vehicle.State.Location,
     )
 }

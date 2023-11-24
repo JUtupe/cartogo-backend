@@ -21,6 +21,7 @@ class VehicleConverter(
                 mileage = vehicle.state.mileage,
                 fuelLevel = vehicle.state.fuelLevel,
                 condition = vehicle.state.condition,
+                location = vehicle.state.location,
             ),
         )
 }

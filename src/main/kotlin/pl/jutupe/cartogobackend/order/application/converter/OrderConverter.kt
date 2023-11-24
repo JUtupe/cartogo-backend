@@ -23,7 +23,25 @@ class OrderConverter(
                 email = order.customer.email,
                 phoneNumber = order.customer.phoneNumber,
             ),
-            vehicle = vehicleConverter.toResponse(order.vehicle)
+            vehicle = vehicleConverter.toResponse(order.vehicle),
+            delivery = order.delivery?.let {
+                OrderResponse.Delivery(
+                    operatorId = it.operator.id,
+                    address = it.address,
+                    pesel = it.pesel,
+                    nip = it.nip,
+                    invoiceData = it.invoiceData,
+                    drivingLicenseNumber = it.drivingLicenseNumber,
+                    idNumber = it.idNumber,
+                )
+            },
+            reception = order.reception?.let {
+                OrderResponse.Reception(
+                    operatorId = it.operator.id,
+                    address = it.address,
+                )
+            },
+            isDone = order.delivery != null && order.reception != null,
         )
     }
 }

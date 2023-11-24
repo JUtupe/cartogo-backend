@@ -6,6 +6,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import pl.jutupe.cartogobackend.auth.domain.UserPrincipal
 import pl.jutupe.cartogobackend.order.application.converter.OrderConverter
+import pl.jutupe.cartogobackend.order.application.model.OrderDeliveryRequest
+import pl.jutupe.cartogobackend.order.application.model.OrderReceptionRequest
 import pl.jutupe.cartogobackend.order.application.model.OrderRequest
 import pl.jutupe.cartogobackend.order.application.model.OrderResponse
 import pl.jutupe.cartogobackend.order.domain.exception.OrderNotFoundException
@@ -49,6 +51,46 @@ class OrderController(
         }
 
         val updatedOrder = orderService.update(request, order, principal.user)
+
+        return orderConverter.toResponse(updatedOrder)
+    }
+
+    @PostMapping("{id}/delivery")
+    fun createDelivery(
+        @PathVariable id: String,
+        @RequestBody request: OrderDeliveryRequest,
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ): OrderResponse {
+        principal.user.rental ?: throw RentalNotFoundException(rentalId = "@me")
+
+        val order = orderRepository.findByIdOrNull(id)
+            ?: throw OrderNotFoundException(orderId = id)
+
+        if (order.rental.id != principal.user.rental.id) {
+            throw OrderNotFoundException(orderId = id)
+        }
+
+        val updatedOrder = orderService.createDelivery(request, order, principal.user)
+
+        return orderConverter.toResponse(updatedOrder)
+    }
+
+    @PostMapping("{id}/reception")
+    fun createReception(
+        @PathVariable id: String,
+        @RequestBody request: OrderReceptionRequest,
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ): OrderResponse {
+        principal.user.rental ?: throw RentalNotFoundException(rentalId = "@me")
+
+        val order = orderRepository.findByIdOrNull(id)
+            ?: throw OrderNotFoundException(orderId = id)
+
+        if (order.rental.id != principal.user.rental.id) {
+            throw OrderNotFoundException(orderId = id)
+        }
+
+        val updatedOrder = orderService.createReception(request, order, principal.user)
 
         return orderConverter.toResponse(updatedOrder)
     }

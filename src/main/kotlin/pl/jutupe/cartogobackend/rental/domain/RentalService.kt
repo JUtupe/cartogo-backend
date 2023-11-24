@@ -1,6 +1,7 @@
 package pl.jutupe.cartogobackend.rental.domain
 
 import org.springframework.stereotype.Service
+import pl.jutupe.cartogobackend.common.Address
 import pl.jutupe.cartogobackend.rental.application.model.RentalRequest
 import pl.jutupe.cartogobackend.rental.domain.model.Rental
 import pl.jutupe.cartogobackend.rental.domain.model.RentalInvitation
@@ -23,7 +24,7 @@ class RentalService(
         val rental = Rental(
             name = request.name,
             nip = request.nip,
-            address = Rental.Address(
+            address = Address(
                 postalCode = request.address.postalCode,
                 street = request.address.street,
                 city = request.address.city,
@@ -47,7 +48,7 @@ class RentalService(
         val rentalWithChanges = rental.copy(
             name = request.name,
             nip = request.nip,
-            address = Rental.Address(
+            address = Address(
                 postalCode = request.address.postalCode,
                 street = request.address.street,
                 city = request.address.city,
