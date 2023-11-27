@@ -33,6 +33,12 @@ data class Order(
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rentalId", nullable = false)
     val rental: Rental,
+
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
+    var delivery: OrderDelivery? = null,
+
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
+    var reception: OrderReception? = null,
 ) {
     @CreatedDate
     @Column

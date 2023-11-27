@@ -19,3 +19,14 @@ class UserSignatureFileResource(
     userId: String,
     nameWithExtension: String
 ) : FileResource("user/$userId", nameWithExtension)
+
+class DeliveryCustomerSignatureFileResource(
+    rentalId: String,
+    orderId: String,
+    nameWithExtension: String
+) : FileResource("rental/$rentalId/order/$orderId/delivery", nameWithExtension)
+class ReceptionCustomerSignatureFileResource(
+    rentalId: String,
+    orderId: String,
+    nameWithExtension: String
+) : FileResource("rental/$rentalId/order/$orderId/reception", nameWithExtension)

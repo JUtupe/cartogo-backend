@@ -1,6 +1,7 @@
 package pl.jutupe.cartogobackend.rental.domain.model
 
 import org.springframework.data.annotation.CreatedDate
+import pl.jutupe.cartogobackend.common.Address
 import java.util.*
 import javax.persistence.*
 
@@ -32,18 +33,6 @@ data class Rental(
     @CreatedDate
     @Column
     val createdDate: Date = Date()
-
-    @Embeddable
-    data class Address(
-        @Column
-        val postalCode: String,
-
-        @Column
-        val street: String,
-
-        @Column
-        val city: String,
-    )
 
     @Embeddable
     data class Owner(
