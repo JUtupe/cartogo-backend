@@ -48,12 +48,13 @@ class OrderService(
         ))
     }
 
-    fun createDelivery(request: OrderDeliveryRequest, order: Order, user: User): Order {
+    fun createDelivery(request: OrderDeliveryRequest, signaturePath: String, order: Order, user: User): Order {
         return orderRepository.save(order.copy(
             delivery = OrderDelivery(
                 orderId = order.id,
                 operator = user,
                 address = request.address,
+                customerSignature = signaturePath,
                 pesel = request.pesel,
                 nip = request.nip,
                 invoiceData = request.invoiceData,
@@ -72,12 +73,13 @@ class OrderService(
         }
     }
 
-    fun createReception(request: OrderReceptionRequest, order: Order, user: User): Order {
+    fun createReception(request: OrderReceptionRequest, signaturePath: String, order: Order, user: User): Order {
         return orderRepository.save(order.copy(
             reception = OrderReception(
                 orderId = order.id,
                 operator = user,
                 address = request.address,
+                customerSignature = signaturePath,
             )
         )).also {
             vehicleRepository.save(it.vehicle.copy(

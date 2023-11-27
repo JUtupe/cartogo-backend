@@ -2,7 +2,6 @@ package pl.jutupe.cartogobackend.order.domain.model
 
 import pl.jutupe.cartogobackend.common.Address
 import pl.jutupe.cartogobackend.user.domain.model.User
-import java.util.*
 import javax.persistence.*
 
 
@@ -17,4 +16,7 @@ data class OrderReception(
     @Column
     @Embedded
     val address: Address,
+
+    @Column
+    val customerSignature: String,
 )
