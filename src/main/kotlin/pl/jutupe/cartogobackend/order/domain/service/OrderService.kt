@@ -8,6 +8,10 @@ import pl.jutupe.cartogobackend.order.domain.model.Order
 import pl.jutupe.cartogobackend.order.domain.model.OrderDelivery
 import pl.jutupe.cartogobackend.order.domain.model.OrderReception
 import pl.jutupe.cartogobackend.order.infrastructure.OrderRepository
+import pl.jutupe.cartogobackend.storage.domain.model.DeliveryCustomerSignatureFileResource
+import pl.jutupe.cartogobackend.storage.domain.model.FileResource
+import pl.jutupe.cartogobackend.storage.domain.model.ReceptionCustomerSignatureFileResource
+import pl.jutupe.cartogobackend.storage.domain.model.UserSignatureFileResource
 import pl.jutupe.cartogobackend.user.domain.model.User
 import pl.jutupe.cartogobackend.vehicle.domain.model.Vehicle
 import pl.jutupe.cartogobackend.vehicle.infrastructure.VehicleRepository
@@ -91,5 +95,27 @@ class OrderService(
                 )
             ))
         }
+    }
+
+    fun getDeliveryCustomerSignatureFileResource(order: Order): FileResource? {
+        val nameWithExtension = order.delivery?.customerSignature?.substringAfterLast('/')
+            ?: return null
+
+        return DeliveryCustomerSignatureFileResource(
+            rentalId = order.rental.id,
+            orderId = order.id,
+            nameWithExtension = nameWithExtension,
+        )
+    }
+
+    fun getReceptionCustomerSignatureFileResource(order: Order): FileResource? {
+        val nameWithExtension = order.reception?.customerSignature?.substringAfterLast('/')
+            ?: return null
+
+        return ReceptionCustomerSignatureFileResource(
+            rentalId = order.rental.id,
+            orderId = order.id,
+            nameWithExtension = nameWithExtension,
+        )
     }
 }

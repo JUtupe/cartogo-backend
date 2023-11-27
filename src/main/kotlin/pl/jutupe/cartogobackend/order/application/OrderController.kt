@@ -15,12 +15,14 @@ import pl.jutupe.cartogobackend.order.application.model.OrderRequest
 import pl.jutupe.cartogobackend.order.application.model.OrderResponse
 import pl.jutupe.cartogobackend.order.domain.exception.OrderNotFoundException
 import pl.jutupe.cartogobackend.order.domain.service.OrderService
+import pl.jutupe.cartogobackend.order.infrastructure.FormGenerator
 import pl.jutupe.cartogobackend.order.infrastructure.OrderRepository
 import pl.jutupe.cartogobackend.rental.domain.exceptions.RentalNotFoundException
 import pl.jutupe.cartogobackend.storage.domain.StorageService
 import pl.jutupe.cartogobackend.storage.domain.model.DeliveryCustomerSignatureFileResource
 import pl.jutupe.cartogobackend.storage.domain.model.ReceptionCustomerSignatureFileResource
-import pl.jutupe.cartogobackend.vehicle.application.model.VehicleRequest
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.*
 
 @RestController
@@ -30,6 +32,7 @@ class OrderController(
     private val orderConverter: OrderConverter,
     private val orderRepository: OrderRepository,
     private val storageService: StorageService,
+    private val formGenerator: FormGenerator,
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -89,6 +92,12 @@ class OrderController(
 
         val updatedOrder = orderService.createDelivery(request, signaturePath.pathWithName, order, principal.user)
 
+        val form = formGenerator.createDeliveryForm(updatedOrder)
+
+        //save file to storage
+        val formPath = Files.createFile(Path.of("form.pdf"))
+        Files.write(formPath, form.byteArray)
+
 
         return orderConverter.toResponse(updatedOrder)
     }
@@ -118,6 +127,13 @@ class OrderController(
 
 
         val updatedOrder = orderService.createReception(request, signaturePath.pathWithName, order, principal.user)
+
+
+        val form = formGenerator.createReceptionForm(updatedOrder)
+
+        //save file to storage
+        val formPath = Files.createFile(Path.of("form.pdf"))
+        Files.write(formPath, form.byteArray)
 
         return orderConverter.toResponse(updatedOrder)
     }
