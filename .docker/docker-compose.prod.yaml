@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  car2go-db:
+    image: mariadb:10.7
+    restart: unless-stopped
+    container_name: database
+    volumes:
+      - cartogo-db:/var/lib/mysql
+    environment:
+      MARIADB_AUTO_UPGRADE: 1
+      MYSQL_ROOT_PASSWORD: cartogo
+      MYSQL_DATABASE: cartogo
+    ports:
+      - "3306:3306"
+    networks:
+      - cartogo-back-local
+  car2go-backend:
+    image: ghcr.io/jutupe/cartogo-backend:latest
+    restart: unless-stopped
+    container_name: cartogo-backend
+    volumes:
+      - cartogo-storage:/cartogo-storage
+    environment:
+      - JWT_SECRET
+      - GOOGLE_CLIENT_ID
+      - CARTOGO_DB_USERNAME=root
+      - CARTOGO_DB_PASSWORD=cartogo
+      - GOOGLE_MAIL_LOGIN
+      - GOOGLE_MAIL_PASSWORD
+    ports:
+      - "8080:8080"
+    networks:
+      - cartogo-back-local
+      - reverse-proxy_global
+    depends_on:
+      - car2go-db
+
+networks:
+  cartogo-back-local:
+  reverse-proxy_global:
+    external: true
+
+volumes:
+  cartogo-db:
+  cartogo-storage:

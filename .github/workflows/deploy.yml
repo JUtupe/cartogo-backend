@@ -1,0 +1,100 @@
+name: Deploy service
+
+concurrency:
+  group: prod
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  unit-test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Gradle cache
+        uses: actions/cache@v3.2.5
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: adopt
+          java-version: 11
+
+  publish-package:
+    runs-on: ubuntu-latest
+
+    needs:
+      - unit-test
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: adopt
+          java-version: 11
+
+      - name: Gradle create image
+        run: bash ./gradlew installDist
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  install-package:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - publish-package
+
+    steps:
+      - name: Deploy package to production
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          script: |
+            docker-compose down
+            docker image rm ghcr.io/jutupe/cartogo-backend
+            docker pull ghcr.io/jutupe/cartogo-backend:latest
+            docker-compose up -d
