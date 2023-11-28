@@ -17,9 +17,6 @@ jobs:
   publish-package:
     runs-on: ubuntu-latest
 
-    needs:
-      - unit-test
-
     permissions:
       packages: write
       contents: read
