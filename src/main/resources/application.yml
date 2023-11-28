@@ -3,6 +3,14 @@ server:
     context-path: /api/rest
   port: 3000
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GOOGLE_MAIL_LOGIN}
+    password: ${GOOGLE_MAIL_PASSWORD}
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
   jpa:
     hibernate:
       ddl-auto: update
