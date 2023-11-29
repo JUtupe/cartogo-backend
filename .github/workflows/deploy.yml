@@ -71,5 +71,5 @@ jobs:
           script: |
             docker-compose down
             docker image rm ghcr.io/jutupe/cartogo-backend
-            docker pull ghcr.io/jutupe/cartogo-backend:master
+            docker pull ghcr.io/jutupe/cartogo-backend:latest
             docker-compose up -d

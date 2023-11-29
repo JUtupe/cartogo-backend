@@ -4,4 +4,4 @@ EXPOSE 8080:8080
 RUN mkdir /app
 COPY ./build/libs/*.jar /app/app.jar
 WORKDIR /app
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
