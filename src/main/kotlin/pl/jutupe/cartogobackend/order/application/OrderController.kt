@@ -1,6 +1,7 @@
 package pl.jutupe.cartogobackend.order.application
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.mail.javamail.JavaMailSender
@@ -35,6 +36,8 @@ class OrderController(
     private val storageService: StorageService,
     private val formGenerator: FormGenerator,
     private val emailSender: JavaMailSender,
+    @Value("\${spring.mail.username:}")
+    private val mailFrom: String,
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -96,6 +99,8 @@ class OrderController(
 
         runCatching {
             sendDeliveryMail(updatedOrder)
+        }.onFailure {
+            it.printStackTrace()
         }
 
         return orderConverter.toResponse(updatedOrder)
@@ -129,6 +134,8 @@ class OrderController(
 
         runCatching {
             sendReceptionMail(updatedOrder)
+        }.onFailure {
+            it.printStackTrace()
         }
 
         return orderConverter.toResponse(updatedOrder)
@@ -168,7 +175,7 @@ class OrderController(
         val helper = MimeMessageHelper(mail, true)
 
         helper.setTo(order.customer.email)
-        helper.setFrom("wypozyczajka.app@gmail.com")
+        helper.setFrom(mailFrom)
         helper.setSubject("${order.rental.name} - Protokół wydania pojazdu")
         helper.setText("W załączniku znajduje się protokół wydania pojazdu.")
         helper.addAttachment("Protokół wydania pojazdu.pdf", form)
@@ -183,7 +190,7 @@ class OrderController(
         val helper = MimeMessageHelper(mail, true)
 
         helper.setTo(order.customer.email)
-        helper.setFrom("wypozyczajka.app@gmail.com")
+        helper.setFrom(mailFrom)
         helper.setSubject("${order.rental.name} - Protokół odbioru pojazdu")
         helper.setText("W załączniku znajduje się protokół odbioru pojazdu.")
         helper.addAttachment("Protokół odbioru pojazdu.pdf", form)
